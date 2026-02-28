@@ -17,13 +17,11 @@ import { ASSIGNMENT_REFETCH_INTERVAL, ASSIGNMENT_STORAGE_KEY, AssignmentFilterPr
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { workbenchConfigurationNodeBase } from '../../../common/configuration.js';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions, ConfigurationScope } from '../../../../platform/configuration/common/configurationRegistry.js';
-import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
 import { importAMDNodeModule } from '../../../../amdX.js';
 import { timeout } from '../../../../base/common/async.js';
 import { CopilotAssignmentFilterProvider } from './assignmentFilters.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { experimentsEnabled } from '../../telemetry/common/workbenchTelemetryUtils.js';
 
 export interface IAssignmentFilter {
 	exclude(assignment: string): boolean;
@@ -165,12 +163,11 @@ export class WorkbenchAssignmentService extends Disposable implements IAssignmen
 		@IStorageService storageService: IStorageService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IProductService private readonly productService: IProductService,
-		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 	) {
 		super();
 
-		this.experimentsEnabled = experimentsEnabled(configurationService, productService, environmentService);
+		this.experimentsEnabled = false;
 
 		if (this.experimentsEnabled) {
 			this.tasClient = this.setupTASClient();

@@ -189,8 +189,6 @@ registerSingleton(IAllowedMcpServersService, AllowedMcpServersService, Instantia
 // Default Account
 import '../workbench/services/accounts/browser/defaultAccount.js';
 
-// Telemetry
-import '../workbench/contrib/telemetry/browser/telemetry.contribution.js';
 
 // Preferences
 import '../workbench/contrib/preferences/browser/preferences.contribution.js';
@@ -353,7 +351,6 @@ import '../workbench/contrib/update/browser/update.contribution.js';
 
 // Surveys
 import '../workbench/contrib/surveys/browser/nps.contribution.js';
-import '../workbench/contrib/surveys/browser/languageSurveys.contribution.js';
 
 // Welcome
 // import '../workbench/contrib/welcomeGettingStarted/browser/gettingStarted.contribution.js';
@@ -414,8 +411,6 @@ import '../workbench/contrib/list/browser/list.contribution.js';
 // Accessibility Signals
 import '../workbench/contrib/accessibilitySignals/browser/accessibilitySignal.contribution.js';
 
-// Bracket Pair Colorizer 2 Telemetry
-import '../workbench/contrib/bracketPairColorizer2Telemetry/browser/bracketPairColorizer2Telemetry.contribution.js';
 
 // Accessibility
 import '../workbench/contrib/accessibility/browser/accessibility.contribution.js';

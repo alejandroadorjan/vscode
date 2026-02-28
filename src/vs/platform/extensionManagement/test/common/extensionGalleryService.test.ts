@@ -6,7 +6,6 @@
 import assert from 'assert';
 import { joinPath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
-import { isUUID } from '../../../../base/common/uuid.js';
 import { mock } from '../../../../base/test/common/mock.js';
 import { IConfigurationService } from '../../../configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../configuration/test/common/testConfigurationService.js';
@@ -20,7 +19,6 @@ import product from '../../../product/common/product.js';
 import { IProductService } from '../../../product/common/productService.js';
 import { resolveMarketplaceHeaders } from '../../../externalServices/common/marketplace.js';
 import { InMemoryStorageService, IStorageService } from '../../../storage/common/storage.js';
-import { TelemetryConfiguration, TELEMETRY_SETTING_ID } from '../../../telemetry/common/telemetry.js';
 import { TargetPlatform } from '../../../extensions/common/extensions.js';
 import { NullTelemetryService } from '../../../telemetry/common/telemetryUtils.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -45,17 +43,14 @@ suite('Extension Gallery Service', () => {
 		const fileSystemProvider = disposables.add(new InMemoryFileSystemProvider());
 		disposables.add(fileService.registerProvider(serviceMachineIdResource.scheme, fileSystemProvider));
 		storageService = disposables.add(new InMemoryStorageService());
-		configurationService = new TestConfigurationService({ [TELEMETRY_SETTING_ID]: TelemetryConfiguration.ON });
-		configurationService.updateValue(TELEMETRY_SETTING_ID, TelemetryConfiguration.ON);
-		productService = { _serviceBrand: undefined, ...product, enableTelemetry: true };
+		configurationService = new TestConfigurationService({});
+		productService = { _serviceBrand: undefined, ...product };
 	});
 
 	test('marketplace machine id', async () => {
 		const headers = await resolveMarketplaceHeaders(product.version, productService, environmentService, configurationService, fileService, storageService, NullTelemetryService);
-		assert.ok(headers['X-Market-User-Id']);
-		assert.ok(isUUID(headers['X-Market-User-Id']));
-		const headers2 = await resolveMarketplaceHeaders(product.version, productService, environmentService, configurationService, fileService, storageService, NullTelemetryService);
-		assert.strictEqual(headers['X-Market-User-Id'], headers2['X-Market-User-Id']);
+		// Machine ID is not sent when telemetry is disabled
+		assert.ok(!headers['X-Market-User-Id']);
 	});
 
 	test('sorting single extension version without target platform', async () => {

@@ -148,13 +148,7 @@ export interface IProductConfiguration {
 		readonly productName: string;
 	};
 
-	readonly removeTelemetryMachineId?: boolean;
-	readonly enabledTelemetryLevels?: { error: boolean; usage: boolean };
-	readonly enableTelemetry?: boolean;
 	readonly openToWelcomeMainPage?: boolean;
-	readonly aiConfig?: {
-		readonly ariaKey: string;
-	};
 
 	readonly documentationUrl?: string;
 	readonly serverDocumentationUrl?: string;
@@ -207,7 +201,6 @@ export interface IProductConfiguration {
 	}>;
 	readonly extensionsForceVersionByQuality?: readonly string[];
 
-	readonly msftInternalDomains?: string[];
 	readonly linkProtectionTrustedDomains?: readonly string[];
 
 	readonly authClientIdMetadataUrl?: string;

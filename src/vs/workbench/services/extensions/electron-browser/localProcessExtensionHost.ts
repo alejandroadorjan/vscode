@@ -26,7 +26,6 @@ import { INativeHostService } from '../../../../platform/native/common/native.js
 import { INotificationService, NotificationPriority, Severity } from '../../../../platform/notification/common/notification.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
-import { isLoggingOnly } from '../../../../platform/telemetry/common/telemetryUtils.js';
 import { IUserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfile.js';
 import { IWorkspaceContextService, WorkbenchState, isUntitledWorkspace } from '../../../../platform/workspace/common/workspace.js';
 import { INativeWorkbenchEnvironmentService } from '../../environment/electron-browser/environmentService.js';
@@ -481,7 +480,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 				appName: this._productService.nameLong,
 				appHost: this._productService.embedderIdentifier || 'desktop',
 				appUriScheme: this._productService.urlProtocol,
-				isExtensionTelemetryLoggingOnly: isLoggingOnly(this._productService, this._environmentService),
+				isExtensionTelemetryLoggingOnly: false,
 				isPortable: this._environmentService.isPortable,
 				appLanguage: platform.language,
 				extensionDevelopmentLocationURI: this._environmentService.extensionDevelopmentLocationURI,

@@ -10,8 +10,7 @@ import { ITextFileService, ITextFileContent } from '../../../services/textfile/c
 import { URI } from '../../../../base/common/uri.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
-import { IWorkspaceTagsService, Tags } from '../common/workspaceTags.js';
-import { getHashedRemotesFromConfig } from './workspaceTags.js';
+import { IWorkspaceTagsService, Tags, getHashedRemotesFromConfig } from '../common/workspaceTags.js';
 import { splitLines } from '../../../../base/common/strings.js';
 import { MavenArtifactIdRegex, MavenDependenciesRegex, MavenDependencyRegex, GradleDependencyCompactRegex, GradleDependencyLooseRegex, MavenGroupIdRegex, JavaLibrariesToLookFor } from '../common/javaWorkspaceTags.js';
 import { hashAsync } from '../../../../base/common/hash.js';
@@ -492,7 +491,7 @@ export class WorkspaceTagsService implements IWorkspaceTagsService {
 				return [];
 			}
 			return this.textFileService.read(uri, { acceptTextOnly: true }).then(
-				content => getHashedRemotesFromConfig(content.value, stripEndingDotGit),
+				content => getHashedRemotesFromConfig(content.value, stripEndingDotGit, hashAsync),
 				err => [] // ignore missing or binary file
 			);
 		});

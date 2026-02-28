@@ -19,10 +19,7 @@ import { joinPath } from '../../../../base/common/resources.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { GettingStartedEditorOptions, GettingStartedInput, gettingStartedInputTypeId } from './gettingStartedInput.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
-import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
-import { getTelemetryLevel } from '../../../../platform/telemetry/common/telemetryUtils.js';
-import { TelemetryLevel } from '../../../../platform/telemetry/common/telemetry.js';
-import { IProductService } from '../../../../platform/product/common/productService.js';
+import { IStorageService, StorageScope } from '../../../../platform/storage/common/storage.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { localize } from '../../../../nls.js';
 import { IEditorResolverService, RegisteredEditorPriority } from '../../../services/editor/common/editorResolverService.js';
@@ -37,7 +34,6 @@ export type RestoreWalkthroughsConfigurationValue = { folder: string; category?:
 
 const configurationKey = 'workbench.startupEditor';
 const oldConfigurationKey = 'workbench.welcome.enabled';
-const telemetryOptOutStorageKey = 'workbench.telemetryOptOutShown';
 
 export class StartupPageEditorResolverContribution extends Disposable implements IWorkbenchContribution {
 
@@ -86,7 +82,6 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
 		@ILifecycleService private readonly lifecycleService: ILifecycleService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
-		@IProductService private readonly productService: IProductService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 		@IStorageService private readonly storageService: IStorageService,
@@ -113,16 +108,6 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 			return;
 		}
 
-		// Always open Welcome page for first-launch, no matter what is open or which startupEditor is set.
-		if (
-			this.productService.enableTelemetry
-			&& this.productService.showTelemetryOptOut
-			&& getTelemetryLevel(this.configurationService) !== TelemetryLevel.NONE
-			&& !this.environmentService.skipWelcome
-			&& !this.storageService.get(telemetryOptOutStorageKey, StorageScope.PROFILE)
-		) {
-			this.storageService.store(telemetryOptOutStorageKey, true, StorageScope.PROFILE, StorageTarget.USER);
-		}
 
 		if (this.tryOpenWalkthroughForFolder()) {
 			return;

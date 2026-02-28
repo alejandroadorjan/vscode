@@ -189,8 +189,7 @@ registerSingleton(IAllowedMcpServersService, AllowedMcpServersService, Instantia
 // Default Account
 import './services/accounts/browser/defaultAccount.js';
 
-// Telemetry
-import './contrib/telemetry/browser/telemetry.contribution.js';
+// (Telemetry contribution removed)
 
 // Preferences
 import './contrib/preferences/browser/preferences.contribution.js';
@@ -353,7 +352,7 @@ import './contrib/update/browser/update.contribution.js';
 
 // Surveys
 import './contrib/surveys/browser/nps.contribution.js';
-import './contrib/surveys/browser/languageSurveys.contribution.js';
+// import './contrib/surveys/browser/languageSurveys.contribution.js'; // removed (telemetry)
 
 // Welcome
 import './contrib/welcomeGettingStarted/browser/gettingStarted.contribution.js';
@@ -414,8 +413,7 @@ import './contrib/list/browser/list.contribution.js';
 // Accessibility Signals
 import './contrib/accessibilitySignals/browser/accessibilitySignal.contribution.js';
 
-// Bracket Pair Colorizer 2 Telemetry
-import './contrib/bracketPairColorizer2Telemetry/browser/bracketPairColorizer2Telemetry.contribution.js';
+// (Bracket Pair Colorizer 2 Telemetry contribution removed)
 
 // Accessibility
 import './contrib/accessibility/browser/accessibility.contribution.js';
@@ -435,8 +433,7 @@ import './contrib/inlineCompletions/browser/inlineCompletions.contribution.js';
 // Drop or paste into
 import './contrib/dropOrPasteInto/browser/dropOrPasteInto.contribution.js';
 
-// Edit Telemetry
-import './contrib/editTelemetry/browser/editTelemetry.contribution.js';
+// (Edit Telemetry contribution removed)
 
 // Opener
 import './contrib/opener/browser/opener.contribution.js';

@@ -60,7 +60,6 @@ import './mainThreadSCM.js';
 import './mainThreadSearch.js';
 import './mainThreadStatusBar.js';
 import './mainThreadStorage.js';
-import './mainThreadTelemetry.js';
 import './mainThreadTerminalService.js';
 import './mainThreadTerminalShellIntegration.js';
 import './mainThreadTheming.js';

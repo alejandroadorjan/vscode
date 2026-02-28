@@ -128,7 +128,7 @@ export interface IChatRequestModel {
 }
 
 export interface ICodeBlockInfo {
-	readonly suggestionId: EditSuggestionId;
+	readonly suggestionId: EditSuggestionId | undefined;
 }
 
 export interface IChatTextEditGroupState {
@@ -1448,7 +1448,7 @@ export interface ISerializableChatRequestData extends ISerializableChatResponseD
 }
 
 export interface ISerializableMarkdownInfo {
-	readonly suggestionId: EditSuggestionId;
+	readonly suggestionId: EditSuggestionId | undefined;
 }
 
 /**

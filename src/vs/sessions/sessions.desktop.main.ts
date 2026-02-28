@@ -61,7 +61,6 @@ import '../workbench/services/imageResize/electron-browser/imageResizeService.js
 import '../workbench/services/browserElements/electron-browser/browserElementsService.js';
 import '../workbench/services/secrets/electron-browser/secretStorageService.js';
 import '../workbench/services/localization/electron-browser/languagePackService.js';
-import '../workbench/services/telemetry/electron-browser/telemetryService.js';
 import '../workbench/services/extensions/electron-browser/extensionHostStarter.js';
 import '../platform/extensionResourceLoader/common/extensionResourceLoaderService.js';
 import '../workbench/services/localization/electron-browser/localeService.js';
@@ -80,7 +79,6 @@ import '../platform/remote/electron-browser/sharedProcessTunnelService.js';
 import '../workbench/services/tunnel/electron-browser/tunnelService.js';
 import '../platform/diagnostics/electron-browser/diagnosticsService.js';
 import '../platform/profiling/electron-browser/profilingService.js';
-import '../platform/telemetry/electron-browser/customEndpointTelemetryService.js';
 import '../platform/remoteTunnel/electron-browser/remoteTunnelService.js';
 import '../workbench/services/files/electron-browser/elevatedFileService.js';
 import '../workbench/services/search/electron-browser/searchService.js';

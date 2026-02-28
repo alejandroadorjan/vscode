@@ -13,8 +13,6 @@ import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { IProductService } from '../../product/common/productService.js';
 import { getServiceMachineId } from '../../externalServices/common/serviceMachineId.js';
 import { IStorageService } from '../../storage/common/storage.js';
-import { TelemetryLevel } from '../../telemetry/common/telemetry.js';
-import { getTelemetryLevel, supportsTelemetry } from '../../telemetry/common/telemetryUtils.js';
 import { RemoteAuthorities } from '../../../base/common/network.js';
 import { TargetPlatform } from '../../extensions/common/extensions.js';
 import { ExtensionGalleryResourceType, getExtensionGalleryManifestResourceUri, IExtensionGalleryManifest, IExtensionGalleryManifestService } from '../../extensionManagement/common/extensionGalleryManifest.js';
@@ -78,7 +76,7 @@ export abstract class AbstractExtensionResourceLoaderService extends Disposable 
 		private readonly _storageService: IStorageService,
 		private readonly _productService: IProductService,
 		private readonly _environmentService: IEnvironmentService,
-		private readonly _configurationService: IConfigurationService,
+		_configurationService: IConfigurationService,
 		private readonly _extensionGalleryManifestService: IExtensionGalleryManifestService,
 		protected readonly _logService: ILogService,
 	) {
@@ -137,9 +135,6 @@ export abstract class AbstractExtensionResourceLoaderService extends Disposable 
 			'X-Client-Name': `${this._productService.applicationName}${isWeb ? '-web' : ''}`,
 			'X-Client-Version': this._productService.version
 		};
-		if (supportsTelemetry(this._productService, this._environmentService) && getTelemetryLevel(this._configurationService) === TelemetryLevel.USAGE) {
-			headers['X-Machine-Id'] = await this._getServiceMachineId();
-		}
 		if (this._productService.commit) {
 			headers['X-Client-Commit'] = this._productService.commit;
 		}
@@ -147,7 +142,7 @@ export abstract class AbstractExtensionResourceLoaderService extends Disposable 
 	}
 
 	private _serviceMachineIdPromise: Promise<string> | undefined;
-	private _getServiceMachineId(): Promise<string> {
+	protected _getServiceMachineId(): Promise<string> {
 		if (!this._serviceMachineIdPromise) {
 			this._serviceMachineIdPromise = getServiceMachineId(this._environmentService, this._fileService, this._storageService);
 		}

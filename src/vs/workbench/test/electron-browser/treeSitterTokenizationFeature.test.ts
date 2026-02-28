@@ -12,7 +12,6 @@ import { URI } from '../../../base/common/uri.js';
 import { IFileService } from '../../../platform/files/common/files.js';
 import { ILogService, NullLogService } from '../../../platform/log/common/log.js';
 import { ITelemetryData, ITelemetryService, TelemetryLevel } from '../../../platform/telemetry/common/telemetry.js';
-import { ClassifiedEvent, OmitMetadata, IGDPRProperty, StrictPropertyCheck } from '../../../platform/telemetry/common/gdprTypings.js';
 import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../platform/configuration/test/common/testConfigurationService.js';
 import { IEnvironmentService } from '../../../platform/environment/common/environment.js';
@@ -61,11 +60,11 @@ class MockTelemetryService implements ITelemetryService {
 	sendErrorTelemetry: boolean = false;
 	publicLog(eventName: string, data?: ITelemetryData): void {
 	}
-	publicLog2<E extends ClassifiedEvent<OmitMetadata<T>> = never, T extends IGDPRProperty = never>(eventName: string, data?: StrictPropertyCheck<T, E>): void {
+	publicLog2(eventName: string, data?: Record<string, any>): void {
 	}
 	publicLogError(errorEventName: string, data?: ITelemetryData): void {
 	}
-	publicLogError2<E extends ClassifiedEvent<OmitMetadata<T>> = never, T extends IGDPRProperty = never>(eventName: string, data?: StrictPropertyCheck<T, E>): void {
+	publicLogError2(eventName: string, data?: Record<string, any>): void {
 	}
 	setExperimentProperty(name: string, value: string): void {
 	}

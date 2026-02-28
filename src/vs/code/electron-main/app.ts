@@ -3,15 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { app, Details, GPUFeatureStatus, powerMonitor, protocol, session, Session, systemPreferences, WebFrameMain } from 'electron';
+import { app, protocol, session, Session, systemPreferences, WebFrameMain } from 'electron';
 import { addUNCHostToAllowlist, disableUNCAccessRestrictions } from '../../base/node/unc.js';
 import { validatedIpcMain } from '../../base/parts/ipc/electron-main/ipcMain.js';
-import { hostname, release } from 'os';
 import { initWindowsVersionInfo } from '../../base/node/windowsVersion.js';
-import { VSBuffer } from '../../base/common/buffer.js';
 import { toErrorMessage } from '../../base/common/errorMessage.js';
 import { Event } from '../../base/common/event.js';
-import { parse } from '../../base/common/jsonc.js';
 import { getPathLabel } from '../../base/common/labels.js';
 import { Disposable, DisposableStore } from '../../base/common/lifecycle.js';
 import { Schemas, VSCODE_AUTHORITY } from '../../base/common/network.js';
@@ -19,7 +16,6 @@ import { join, posix } from '../../base/common/path.js';
 import { INodeProcess, IProcessEnvironment, isLinux, isLinuxSnap, isMacintosh, isWindows, OS } from '../../base/common/platform.js';
 import { assertType } from '../../base/common/types.js';
 import { URI } from '../../base/common/uri.js';
-import { generateUuid } from '../../base/common/uuid.js';
 import { registerContextMenuListener } from '../../base/parts/contextmenu/electron-main/contextmenu.js';
 import { getDelayedChannel, ProxyChannel, StaticRouter } from '../../base/parts/ipc/common/ipc.js';
 import { Server as ElectronIPCServer } from '../../base/parts/ipc/electron-main/ipc.electron.js';
@@ -31,7 +27,7 @@ import { IBackupMainService } from '../../platform/backup/electron-main/backup.j
 import { BackupMainService } from '../../platform/backup/electron-main/backupMainService.js';
 import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
 import { ElectronExtensionHostDebugBroadcastChannel } from '../../platform/debug/electron-main/extensionHostDebugIpc.js';
-import { IDiagnosticsService, IGPULogMessage } from '../../platform/diagnostics/common/diagnostics.js';
+import { IDiagnosticsService } from '../../platform/diagnostics/common/diagnostics.js';
 import { DiagnosticsMainService, IDiagnosticsMainService } from '../../platform/diagnostics/electron-main/diagnosticsMainService.js';
 import { DialogMainService, IDialogMainService } from '../../platform/dialogs/electron-main/dialogMainService.js';
 import { IEncryptionMainService } from '../../platform/encryption/common/encryptionService.js';
@@ -75,11 +71,8 @@ import { ISignService } from '../../platform/sign/common/sign.js';
 import { IStateService } from '../../platform/state/node/state.js';
 import { StorageDatabaseChannel } from '../../platform/storage/electron-main/storageIpc.js';
 import { ApplicationStorageMainService, IApplicationStorageMainService, IStorageMainService, StorageMainService } from '../../platform/storage/electron-main/storageMainService.js';
-import { resolveCommonProperties } from '../../platform/telemetry/common/commonProperties.js';
-import { ITelemetryService, TelemetryLevel } from '../../platform/telemetry/common/telemetry.js';
-import { TelemetryAppenderClient } from '../../platform/telemetry/common/telemetryIpc.js';
-import { ITelemetryServiceConfig, TelemetryService } from '../../platform/telemetry/common/telemetryService.js';
-import { getPiiPathsFromEnvironment, getTelemetryLevel, isInternalTelemetry, NullTelemetryService, supportsTelemetry } from '../../platform/telemetry/common/telemetryUtils.js';
+import { ITelemetryService } from '../../platform/telemetry/common/telemetry.js';
+import { NullTelemetryService } from '../../platform/telemetry/common/telemetryUtils.js';
 import { IUpdateService } from '../../platform/update/common/update.js';
 import { UpdateChannel } from '../../platform/update/common/updateIpc.js';
 import { DarwinUpdateService } from '../../platform/update/electron-main/updateService.darwin.js';
@@ -112,7 +105,7 @@ import { UserDataProfilesHandler } from '../../platform/userDataProfile/electron
 import { ProfileStorageChangesListenerChannel } from '../../platform/userDataProfile/electron-main/userDataProfileStorageIpc.js';
 import { Promises, RunOnceScheduler, runWhenGlobalIdle } from '../../base/common/async.js';
 import { CancellationToken } from '../../base/common/cancellation.js';
-import { resolveMachineId, resolveSqmId, resolveDevDeviceId, validateDevDeviceId } from '../../platform/telemetry/electron-main/telemetryUtils.js';
+import { resolveMachineId, resolveSqmId, resolveDevDeviceId } from '../../platform/telemetry/electron-main/telemetryUtils.js';
 import { ExtensionsProfileScannerService } from '../../platform/extensionManagement/node/extensionsProfileScannerService.js';
 import { LoggerChannel } from '../../platform/log/electron-main/logIpc.js';
 import { ILoggerMainService } from '../../platform/log/electron-main/loggerService.js';
@@ -135,7 +128,6 @@ import { McpGatewayService } from '../../platform/mcp/node/mcpGatewayService.js'
 import { McpGatewayChannel } from '../../platform/mcp/node/mcpGatewayChannel.js';
 import { IWebContentExtractorService } from '../../platform/webContentExtractor/common/webContentExtractor.js';
 import { NativeWebContentExtractorService } from '../../platform/webContentExtractor/electron-main/webContentExtractorService.js';
-import ErrorTelemetry from '../../platform/telemetry/electron-main/errorTelemetry.js';
 
 /**
  * The main VS Code application. There will only ever be one instance,
@@ -595,13 +587,6 @@ export class CodeApplication extends Disposable {
 		// Services
 		const appInstantiationService = await this.initServices(machineId, sqmId, devDeviceId, sharedProcessReady);
 
-		// Error telemetry
-		appInstantiationService.invokeFunction(accessor => this._register(new ErrorTelemetry(accessor.get(ILogService), accessor.get(ITelemetryService))));
-
-		// Metered connection telemetry
-		appInstantiationService.invokeFunction(accessor => {
-			(accessor.get(IMeteredConnectionService) as MeteredConnectionMainService).setTelemetryService(accessor.get(ITelemetryService));
-		});
 
 		// Auth Handler
 		appInstantiationService.invokeFunction(accessor => accessor.get(IProxyAuthService));
@@ -1125,19 +1110,8 @@ export class CodeApplication extends Disposable {
 		// URL handling
 		services.set(IURLService, new SyncDescriptor(NativeURLService, undefined, false /* proxied to other processes */));
 
-		// Telemetry
-		if (supportsTelemetry(this.productService, this.environmentMainService)) {
-			const isInternal = isInternalTelemetry(this.productService, this.configurationService);
-			const channel = getDelayedChannel(sharedProcessReady.then(client => client.getChannel('telemetryAppender')));
-			const appender = new TelemetryAppenderClient(channel);
-			const commonProperties = resolveCommonProperties(release(), hostname(), process.arch, this.productService.commit, this.productService.version, machineId, sqmId, devDeviceId, isInternal, this.productService.date);
-			const piiPaths = getPiiPathsFromEnvironment(this.environmentMainService);
-			const config: ITelemetryServiceConfig = { appenders: [appender], commonProperties, piiPaths, sendErrorTelemetry: true };
-
-			services.set(ITelemetryService, new SyncDescriptor(TelemetryService, [config], false));
-		} else {
-			services.set(ITelemetryService, NullTelemetryService);
-		}
+		// Telemetry (disabled)
+		services.set(ITelemetryService, NullTelemetryService);
 
 		// Default Extensions Profile Init
 		services.set(IExtensionsProfileScannerService, new SyncDescriptor(ExtensionsProfileScannerService, undefined, true));
@@ -1454,96 +1428,12 @@ export class CodeApplication extends Disposable {
 		// We also show an error to the user in case this fails.
 		this.resolveShellEnvironment(this.environmentMainService.args, process.env, true);
 
-		// Crash reporter
-		this.updateCrashReporterEnablement();
 
 		// macOS: rosetta translation warning
 		if (isMacintosh && app.runningUnderARM64Translation) {
 			this.windowsMainService?.sendToFocused('vscode:showTranslatedBuildWarning');
 		}
 
-		// Power telemetry
-		instantiationService.invokeFunction(accessor => {
-			const telemetryService = accessor.get(ITelemetryService);
-
-			type PowerEvent = {
-				readonly idleState: string;
-				readonly idleTime: number;
-				readonly thermalState: string;
-				readonly onBattery: boolean;
-			};
-			type PowerEventClassification = {
-				idleState: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The system idle state (active, idle, locked, unknown).' };
-				idleTime: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; isMeasurement: true; comment: 'The system idle time in seconds.' };
-				thermalState: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The system thermal state (unknown, nominal, fair, serious, critical).' };
-				onBattery: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; isMeasurement: true; comment: 'Whether the system is running on battery power.' };
-				owner: 'chrmarti';
-				comment: 'Tracks OS power suspend and resume events for reliability insights.';
-			};
-
-			const getPowerEventData = (): PowerEvent => ({
-				idleState: powerMonitor.getSystemIdleState(60),
-				idleTime: powerMonitor.getSystemIdleTime(),
-				thermalState: powerMonitor.getCurrentThermalState(),
-				onBattery: powerMonitor.isOnBatteryPower()
-			});
-
-			this._register(Event.fromNodeEventEmitter(powerMonitor, 'suspend')(() => {
-				telemetryService.publicLog2<PowerEvent, PowerEventClassification>('power.suspend', getPowerEventData());
-			}));
-
-			this._register(Event.fromNodeEventEmitter(powerMonitor, 'resume')(() => {
-				telemetryService.publicLog2<PowerEvent, PowerEventClassification>('power.resume', getPowerEventData());
-			}));
-		});
-
-		// GPU crash telemetry for skia graphite out of order recording failures
-		// Refs https://github.com/microsoft/vscode/issues/284162
-		if (isMacintosh) {
-			instantiationService.invokeFunction(accessor => {
-				const telemetryService = accessor.get(ITelemetryService);
-				type GPUFeatureStatusWithSkiaGraphite = GPUFeatureStatus & {
-					skia_graphite: string;
-				};
-				const initialGpuFeatureStatus = app.getGPUFeatureStatus() as GPUFeatureStatusWithSkiaGraphite;
-				const skiaGraphiteEnabled: string = initialGpuFeatureStatus['skia_graphite'];
-				if (skiaGraphiteEnabled === 'enabled') {
-					this._register(Event.fromNodeEventEmitter<{ details: Details }>(app, 'child-process-gone', (event, details) => ({ event, details }))(({ details }) => {
-						if (details.type === 'GPU' && details.reason === 'crashed') {
-							const currentGpuFeatureStatus = app.getGPUFeatureStatus();
-							const currentRasterizationStatus: string = currentGpuFeatureStatus['rasterization'];
-							if (currentRasterizationStatus !== 'enabled') {
-								// Get last 10 GPU log messages (only the message field)
-								let gpuLogMessages: string[] = [];
-								type AppWithGPULogMethod = typeof app & {
-									getGPULogMessages(): IGPULogMessage[];
-								};
-								const customApp = app as AppWithGPULogMethod;
-								if (typeof customApp.getGPULogMessages === 'function') {
-									gpuLogMessages = customApp.getGPULogMessages().slice(-10).map(log => log.message);
-								}
-
-								type GpuCrashEvent = {
-									readonly gpuFeatureStatus: string;
-									readonly gpuLogMessages: string;
-								};
-								type GpuCrashClassification = {
-									gpuFeatureStatus: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'Current GPU feature status.' };
-									gpuLogMessages: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'Last 10 GPU log messages before crash.' };
-									owner: 'deepak1556';
-									comment: 'Tracks GPU process crashes that would result in fallback mode.';
-								};
-
-								telemetryService.publicLog2<GpuCrashEvent, GpuCrashClassification>('gpu.crash.fallback', {
-									gpuFeatureStatus: JSON.stringify(currentGpuFeatureStatus),
-									gpuLogMessages: JSON.stringify(gpuLogMessages)
-								});
-							}
-						}
-					}));
-				}
-			});
-		}
 	}
 
 	private async installMutex(): Promise<void> {
@@ -1574,56 +1464,7 @@ export class CodeApplication extends Disposable {
 		return {};
 	}
 
-	private async updateCrashReporterEnablement(): Promise<void> {
-
-		// If enable-crash-reporter argv is undefined then this is a fresh start,
-		// based on `telemetry.enableCrashreporter` settings, generate a UUID which
-		// will be used as crash reporter id and also update the json file.
-
-		try {
-			const argvContent = await this.fileService.readFile(this.environmentMainService.argvResource);
-			const argvString = argvContent.value.toString();
-			const argvJSON = parse<{ 'enable-crash-reporter'?: boolean }>(argvString);
-			const telemetryLevel = getTelemetryLevel(this.configurationService);
-			const enableCrashReporter = telemetryLevel >= TelemetryLevel.CRASH;
-
-			// Initial startup
-			if (argvJSON['enable-crash-reporter'] === undefined) {
-				const additionalArgvContent = [
-					'',
-					'	// Allows to disable crash reporting.',
-					'	// Should restart the app if the value is changed.',
-					`	"enable-crash-reporter": ${enableCrashReporter},`,
-					'',
-					'	// Unique id used for correlating crash reports sent from this instance.',
-					'	// Do not edit this value.',
-					`	"crash-reporter-id": "${generateUuid()}"`,
-					'}'
-				];
-				const newArgvString = argvString.substring(0, argvString.length - 2).concat(',\n', additionalArgvContent.join('\n'));
-
-				await this.fileService.writeFile(this.environmentMainService.argvResource, VSBuffer.fromString(newArgvString));
-			}
-
-			// Subsequent startup: update crash reporter value if changed
-			else {
-				const newArgvString = argvString.replace(/"enable-crash-reporter": .*,/, `"enable-crash-reporter": ${enableCrashReporter},`);
-				if (newArgvString !== argvString) {
-					await this.fileService.writeFile(this.environmentMainService.argvResource, VSBuffer.fromString(newArgvString));
-				}
-			}
-		} catch (error) {
-			this.logService.error(error);
-
-			// Inform the user via notification
-			this.windowsMainService?.sendToFocused('vscode:showArgvParseWarning');
-		}
-	}
-
 	private eventuallyAfterWindowOpen(): void {
-
-		// Validate Device ID is up to date (delay this as it has shown significant perf impact)
-		// Refs: https://github.com/microsoft/vscode/issues/234064
-		validateDevDeviceId(this.stateService, this.logService);
+		// no-op (device ID validation removed with telemetry)
 	}
 }

@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createDecorator } from '../../instantiation/common/instantiation.js';
-import { ClassifiedEvent, IGDPRProperty, OmitMetadata, StrictPropertyCheck } from './gdprTypings.js';
 
 export const ITelemetryService = createDecorator<ITelemetryService>('telemetryService');
 
@@ -12,6 +11,13 @@ export interface ITelemetryData {
 	from?: string;
 	target?: string;
 	[key: string]: string | unknown | undefined;
+}
+
+export const enum TelemetryLevel {
+	NONE = 0,
+	CRASH = 1,
+	ERROR = 2,
+	USAGE = 3
 }
 
 export interface ITelemetryService {
@@ -27,34 +33,21 @@ export interface ITelemetryService {
 	readonly firstSessionDate: string;
 	readonly msftInternal?: boolean;
 
-	/**
-	 * Whether error telemetry will get sent. If false, `publicLogError` will no-op.
-	 */
 	readonly sendErrorTelemetry: boolean;
 
-	/**
-	 * @deprecated Use publicLog2 and the typescript GDPR annotation where possible
-	 */
+	/** @deprecated */
 	publicLog(eventName: string, data?: ITelemetryData): void;
 
-	/**
-	 * Sends a telemetry event that has been privacy approved.
-	 * Do not call this unless you have been given approval.
-	 */
-	publicLog2<E extends ClassifiedEvent<OmitMetadata<T>> = never, T extends IGDPRProperty = never>(eventName: string, data?: StrictPropertyCheck<T, E>): void;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	publicLog2<E = unknown, T = unknown>(eventName: string, data?: Record<string, any>): void;
 
-	/**
-	 * @deprecated Use publicLogError2 and the typescript GDPR annotation where possible
-	 */
+	/** @deprecated */
 	publicLogError(errorEventName: string, data?: ITelemetryData): void;
 
-	publicLogError2<E extends ClassifiedEvent<OmitMetadata<T>> = never, T extends IGDPRProperty = never>(eventName: string, data?: StrictPropertyCheck<T, E>): void;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	publicLogError2<E = unknown, T = unknown>(eventName: string, data?: Record<string, any>): void;
 
 	setExperimentProperty(name: string, value: string): void;
-}
-
-export function telemetryLevelEnabled(service: ITelemetryService, level: TelemetryLevel): boolean {
-	return service.telemetryLevel >= level;
 }
 
 export interface ITelemetryEndpoint {
@@ -63,6 +56,10 @@ export interface ITelemetryEndpoint {
 	sendErrorTelemetry: boolean;
 }
 
+export const firstSessionDateStorageKey = 'telemetry.firstSessionDate';
+export const lastSessionDateStorageKey = 'telemetry.lastSessionDate';
+export const currentSessionDateStorageKey = 'telemetry.currentSessionDate';
+
 export const ICustomEndpointTelemetryService = createDecorator<ICustomEndpointTelemetryService>('customEndpointTelemetryService');
 
 export interface ICustomEndpointTelemetryService {
@@ -70,36 +67,4 @@ export interface ICustomEndpointTelemetryService {
 
 	publicLog(endpoint: ITelemetryEndpoint, eventName: string, data?: ITelemetryData): void;
 	publicLogError(endpoint: ITelemetryEndpoint, errorEventName: string, data?: ITelemetryData): void;
-}
-
-// Keys
-export const currentSessionDateStorageKey = 'telemetry.currentSessionDate';
-export const firstSessionDateStorageKey = 'telemetry.firstSessionDate';
-export const lastSessionDateStorageKey = 'telemetry.lastSessionDate';
-export const machineIdKey = 'telemetry.machineId';
-export const sqmIdKey = 'telemetry.sqmId';
-export const devDeviceIdKey = 'telemetry.devDeviceId';
-
-// Configuration Keys
-export const TELEMETRY_SECTION_ID = 'telemetry';
-export const TELEMETRY_SETTING_ID = 'telemetry.telemetryLevel';
-export const TELEMETRY_CRASH_REPORTER_SETTING_ID = 'telemetry.enableCrashReporter';
-export const TELEMETRY_OLD_SETTING_ID = 'telemetry.enableTelemetry';
-
-export const enum TelemetryLevel {
-	NONE = 0,
-	CRASH = 1,
-	ERROR = 2,
-	USAGE = 3
-}
-
-export const enum TelemetryConfiguration {
-	OFF = 'off',
-	CRASH = 'crash',
-	ERROR = 'error',
-	ON = 'all'
-}
-
-export interface ICommonProperties {
-	[name: string]: string | boolean | undefined;
 }
